@@ -12,8 +12,8 @@ const SubtitleEditor = ({ segments, fileId, onUpdate, onRegenerate, isProcessing
 
   useEffect(() => {
     // 세그먼트가 변경되면 모든 textarea 높이 조절
-    editedSegments.forEach((segment) => {
-      const textarea = textareaRefs.current[segment.id];
+    editedSegments.forEach((segment, index) => {
+      const textarea = textareaRefs.current[index];
       if (textarea) {
         textarea.style.height = 'auto';
         textarea.style.height = `${textarea.scrollHeight}px`;
@@ -21,23 +21,23 @@ const SubtitleEditor = ({ segments, fileId, onUpdate, onRegenerate, isProcessing
     });
   }, [editedSegments]);
 
-  const handleTextChange = (id, newText) => {
-    const updated = editedSegments.map((seg) =>
-      seg.id === id ? { ...seg, text: newText } : seg
+  const handleTextChange = (index, newText) => {
+    const updated = editedSegments.map((seg, i) =>
+      i === index ? { ...seg, text: newText } : seg
     );
     setEditedSegments(updated);
     
     // textarea 높이 자동 조절
-    const textarea = textareaRefs.current[id];
+    const textarea = textareaRefs.current[index];
     if (textarea) {
       textarea.style.height = 'auto';
       textarea.style.height = `${textarea.scrollHeight}px`;
     }
   };
 
-  const handleTimeChange = (id, field, value) => {
-    const updated = editedSegments.map((seg) =>
-      seg.id === id ? { ...seg, [field]: parseFloat(value) } : seg
+  const handleTimeChange = (index, field, value) => {
+    const updated = editedSegments.map((seg, i) =>
+      i === index ? { ...seg, [field]: parseFloat(value) } : seg
     );
     setEditedSegments(updated);
   };
@@ -71,6 +71,7 @@ const SubtitleEditor = ({ segments, fileId, onUpdate, onRegenerate, isProcessing
   };
 
   const formatTime = (seconds) => {
+    if (seconds === undefined || seconds === null) return '0:00.00';
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = (seconds % 60).toFixed(2);
@@ -79,6 +80,18 @@ const SubtitleEditor = ({ segments, fileId, onUpdate, onRegenerate, isProcessing
       return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.padStart(5, '0')}`;
     }
     return `${minutes}:${secs.padStart(5, '0')}`;
+  };
+
+  const getSpeakerColor = (speaker) => {
+    if (!speaker) return '#999';
+    const colors = {
+      'SPEAKER_00': '#667eea',
+      'SPEAKER_01': '#f093fb',
+      'SPEAKER_02': '#4facfe',
+      'SPEAKER_03': '#43e97b',
+      'SPEAKER_04': '#fa709a',
+    };
+    return colors[speaker] || '#999';
   };
 
   // 원본과 편집본을 비교하여 변경사항이 있는지 확인
@@ -92,10 +105,14 @@ const SubtitleEditor = ({ segments, fileId, onUpdate, onRegenerate, isProcessing
       const edited = editedSegments[index];
       if (!edited) return true;
       
+      const originalStart = original.start || original.start_time;
+      const originalEnd = original.end || original.end_time;
+      const editedStart = edited.start || edited.start_time;
+      const editedEnd = edited.end || edited.end_time;
+      
       return (
-        original.id !== edited.id ||
-        Math.abs(original.start_time - edited.start_time) > 0.001 ||
-        Math.abs(original.end_time - edited.end_time) > 0.001 ||
+        Math.abs(originalStart - editedStart) > 0.001 ||
+        Math.abs(originalEnd - editedEnd) > 0.001 ||
         original.text !== edited.text
       );
     });
@@ -126,43 +143,37 @@ const SubtitleEditor = ({ segments, fileId, onUpdate, onRegenerate, isProcessing
       </div>
 
       <div className="segments-list">
-        {editedSegments.map((segment) => (
+        {editedSegments.map((segment, index) => (
           <div 
-            key={segment.id} 
+            key={index} 
             className="segment-item"
-            onClick={() => onSegmentClick && onSegmentClick(segment.start_time)}
+            onClick={() => onSegmentClick && onSegmentClick(segment.start || segment.start_time)}
           >
             <div className="segment-header">
-              <span className="segment-id">#{segment.id}</span>
+              <div className="segment-info">
+                <span className="segment-id">#{index + 1}</span>
+                {segment.speaker && (
+                  <span 
+                    className="speaker-badge"
+                    style={{ backgroundColor: getSpeakerColor(segment.speaker) }}
+                  >
+                    {segment.speaker}
+                  </span>
+                )}
+              </div>
               <div className="segment-times">
-                <label>
-                  시작:
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={segment.start_time}
-                    onChange={(e) => handleTimeChange(segment.id, 'start_time', e.target.value)}
-                    className="time-input"
-                  />
-                  <span className="time-display">{formatTime(segment.start_time)}</span>
-                </label>
-                <label>
-                  종료:
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={segment.end_time}
-                    onChange={(e) => handleTimeChange(segment.id, 'end_time', e.target.value)}
-                    className="time-input"
-                  />
-                  <span className="time-display">{formatTime(segment.end_time)}</span>
-                </label>
+                <span className="time-display">
+                  {formatTime(segment.start || segment.start_time)} → {formatTime(segment.end || segment.end_time)}
+                </span>
+                <span className="duration-display">
+                  ({((segment.end || segment.end_time) - (segment.start || segment.start_time)).toFixed(2)}초)
+                </span>
               </div>
             </div>
             <textarea
-              ref={(el) => (textareaRefs.current[segment.id] = el)}
+              ref={(el) => (textareaRefs.current[index] = el)}
               value={segment.text}
-              onChange={(e) => handleTextChange(segment.id, e.target.value)}
+              onChange={(e) => handleTextChange(index, e.target.value)}
               className="segment-text"
               rows="1"
               placeholder="자막 텍스트를 입력하세요"

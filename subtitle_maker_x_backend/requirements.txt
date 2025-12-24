@@ -1,0 +1,27 @@
+# 웹 프레임워크 및 서버
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+python-multipart>=0.0.6
+websockets>=12.0
+python-dotenv>=1.0.0
+
+# 비디오/오디오 처리
+ffmpeg-python>=0.2.0
+
+# PyTorch (먼저 설치 - 다른 패키지들의 기반)
+# torch 2.6+는 weights_only=True가 기본값이 되어 whisperx와 호환 문제 발생
+torch>=2.1.0,<2.6.0
+torchaudio>=2.2.0,<2.9.0
+
+# 유틸리티 (numpy는 pyannote-metrics 요구사항에 맞춤)
+numpy>=2.2.2
+
+# 음성 구간 탐지 (VAD)
+silero-vad>=4.0.0
+
+# 음성 인식 및 화자 분리
+whisperx>=3.1.0
+
+# 추가 의존성
+numba>=0.60.0
+
