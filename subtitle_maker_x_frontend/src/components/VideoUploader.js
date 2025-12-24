@@ -55,7 +55,8 @@ const VideoUploader = ({ onUploadSuccess }) => {
       }
 
       const data = await response.json();
-      onUploadSuccess(data.file_id, data.filename);
+      console.log('Upload response:', data);
+      onUploadSuccess(data.fileId, data.filename);
     } catch (error) {
       console.error('업로드 오류:', error);
       alert('업로드 중 오류가 발생했습니다.');

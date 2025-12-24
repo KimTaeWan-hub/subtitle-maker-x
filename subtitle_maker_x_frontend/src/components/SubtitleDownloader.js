@@ -4,7 +4,7 @@ import './SubtitleDownloader.css';
 const SubtitleDownloader = ({ fileId }) => {
   const handleDownload = async (format) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/subtitles/${fileId}/download/${format}`);
+      const response = await fetch(`http://localhost:8000/api/download/${fileId}/${format}`);
       
       if (!response.ok) {
         throw new Error('다운로드 실패');
