@@ -1,0 +1,33 @@
+.subtitle-downloader {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-top: 0;
+}
+
+.subtitle-downloader h3 {
+  color: #333;
+  margin-bottom: 0.75rem;
+  font-size: 1.1rem;
+}
+
+.download-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.download-buttons .btn {
+  width: 100%;
+  text-align: center;
+  padding: 0.6rem 0.5rem;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .download-buttons {
+    grid-template-columns: 1fr;
+  }
+}
+
